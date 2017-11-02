@@ -1,27 +1,29 @@
 using Gym
 using Base.Test
 
-function sim(env, nsteps=100, rng=MersenneTwister())
+function sim(env, nsteps=100, rng=MersenneTwister(0))
     step = 1
-    done = false
+    isdone = false
     r_tot = 0.0
-    start_monitor(env, string("exp-", env.name))
-    o = reset(env)
+    o = reset!(env)
     na = n_actions(env)
     dims = obs_dimensions(env)
-    while !done && step <= nsteps
+    while !isdone && step <= nsteps
         action = sample_action(env)
-        obs, rew, done, info = step!(env, action)
+        obs, rew, isdone, info = step!(env, action)
         #println(obs, " ", rew, " ", done, " ", info)
         r_tot += rew
         step += 1
+        render(env)
+        sleep(0.02)
     end
-    close_monitor(env)
+    render(env, close=true)
+
     return r_tot
 end
 
-envs = [GymEnvironment("Breakout-v0")]
+envs = [GymEnvironment("Breakout-v0"), GymEnvironment("CartPole-v0")]
 
 for env in envs
     r = sim(env)
-end 
+end
