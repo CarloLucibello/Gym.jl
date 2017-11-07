@@ -1,17 +1,21 @@
 using Gym
 using Base.Test
 
-function sim(env, nsteps=100, rng=MersenneTwister(0))
+function sim(env, nsteps=100, rng=Base.Random.GLOBAL_RNG)
+    println("### Playing ", env.name)
     step = 1
-    isdone = false
+    done = false
     r_tot = 0.0
     o = reset!(env)
     na = n_actions(env)
     dims = obs_dimensions(env)
-    while !isdone && step <= nsteps
-        action = sample_action(env)
-        obs, rew, isdone, info = step!(env, action)
-        #println(obs, " ", rew, " ", done, " ", info)
+    srand(env, 17)
+    while !done && step <= nsteps
+        A = actions(env)
+        action = rand(A)
+        @show A action
+        obs, rew, done, info = step!(env, action)
+        #print  ln(obs, " ", rew, " ", done, " ", info)
         r_tot += rew
         step += 1
         render(env)
@@ -22,7 +26,7 @@ function sim(env, nsteps=100, rng=MersenneTwister(0))
     return r_tot
 end
 
-envs = [GymEnvironment("Breakout-v0"), GymEnvironment("CartPole-v0")]
+envs = [GymEnv("Breakout-v0"), GymEnv("CartPole-v0"), GymEnv("Pong-v0")]
 
 for env in envs
     r = sim(env)

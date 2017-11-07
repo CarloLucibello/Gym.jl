@@ -13,7 +13,7 @@ step = 1
 done = false
 r_tot = 0.0
 
-env = GymEnvironment("Breakout-v0") # initialize the environment
+env = GymEnv("Breakout-v0") # initialize the environment
 start_monitor(env, string("exp-", env.name)) # saves the results in exp-Breakout-v0/
 o = reset(env) # reset the environment
 na = n_actions(env)                                                  

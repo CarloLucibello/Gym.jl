@@ -1,54 +1,75 @@
-__precompile__()
+# __precompile__()
 module Gym
 
 using DeepRL
 using PyCall
-
-#importall DeepRL
-#importall POMDPs
-#import DeepRL: reset, step!, actions, rand, sample_action, n_actions, obs_dimensions, render
+using IntervalSets
+#import DeepRL: reset!, step!, actions, rand, sample_action, n_actions, obs_dimensions, render
 
 export
-    GymEnvironment,
-    GymActionSpace,
+    GymEnv,
     reset!,
     step!,
     actions,
-    rand,
-    sample_action,
     n_actions,
     obs_dimensions,
     render
 
-mutable struct GymEnvironment <: AbstractEnvironment
+mutable struct GymEnv <: AbstractEnvironment
     name::AbstractString
     env
+    state
+    done
 end
 
-GymEnvironment(name::AbstractString) = GymEnvironment(name, gym.make(name))
+GymEnv(name::AbstractString) = GymEnv(name, gym.make(name), nothing, true)
 
-immutable GymActionSpace
-    action_space
+Base.srand(env::GymEnv, seed) = env.env[:seed](seed)
+
+DeepRL.finished(env::GymEnv) = env.done
+
+DeepRL.reset!(env::GymEnv) = (env.state = env.env[:reset](); env.state)
+
+function DeepRL.step!(env::GymEnv, action)
+    return env.state, r, env.done, info = env.env[:step](action) #TODO assuming fully observable here
 end
-GymActionSpace(env::GymEnvironment) = GymActionSpace(env.env[:action_space])
 
-DeepRL.reset!(env::GymEnvironment) = env.env[:reset]()
-
-function DeepRL.step!(env::GymEnvironment, action)
-    return env.env[:step](action)
+DeepRL.actions(env::GymEnv) = _actions(env.env[:action_space])
+function _actions(A::PyObject)
+    if haskey(A, :n)
+        # choose from n actions
+        return 0:A[:n]-1
+    elseif haskey(A, :spaces)
+        # array of action sets
+        return[_actions(a) for a in A[:spaces]]
+    elseif haskey(A, :high)
+        # continuous interval
+        return A[:low]..A[:high] # interval from IntervalSets
+    # elseif haskey(A, :buttonmasks)
+    #     # assumed VNC actions... keys to press, buttons to mask, and screen position
+    #     # keyboard = DiscreteSet(A[:keys])
+    #     keyboard = KeyboardActionSet(A[:keys])
+    #     buttons = DiscreteSet(Int[bm for bm in A[:buttonmasks]])
+    #     width,height = A[:screen_shape]
+    #     mouse = MouseActionSet(width, height, buttons)
+    #     TupleSet(keyboard, mouse)
+    # elseif haskey(A, :actions)
+    #     # Hardcoded
+    #     TupleSet(DiscreteSet(A[:actions]))
+    else
+        @show A
+        @show keys(A)
+        error("Unknown actionset type: $A")
+    end
 end
 
-DeepRL.actions(env::GymEnvironment) = GymActionSpace(env)
 
-Base.rand(as::GymActionSpace) = as.action_space[:sample]()
+DeepRL.n_actions(env::GymEnv) = env.env[:action_space][:n]
 
-DeepRL.sample_action(env::GymEnvironment) = rand(actions(env))
+DeepRL.obs_dimensions(env::GymEnv) = env.env[:observation_space][:shape]
 
-DeepRL.n_actions(env::GymEnvironment) = env.env[:action_space][:n]
+DeepRL.render(env::GymEnv, args...; kws...) = env.env[:render](args...; kws...)
 
-DeepRL.obs_dimensions(env::GymEnvironment) = env.env[:observation_space][:shape]
-
-DeepRL.render(env::GymEnvironment, args...; kws...) = env.env[:render](args...; kws...)
 
 function __init__()
     global const gym = PyCall.pywrap(PyCall.pyimport("gym"))
