@@ -18,7 +18,7 @@ function sim(env, nsteps=100, rng=Base.Random.GLOBAL_RNG)
         #print  ln(obs, " ", rew, " ", done, " ", info)
         r_tot += rew
         step += 1
-        render(env)
+        # render(env)
         sleep(0.02)
     end
     render(env, close=true)

@@ -2,11 +2,9 @@
 
 [![Build Status](https://travis-ci.org/sisl/Gym.jl.svg?branch=master)](https://travis-ci.org/sisl/Gym.jl)
 
-Julia wrapper for [OpenAI Gym](https://gym.openai.com/).
-Similar to [this](https://github.com/tbreloff/OpenAIGym.jl) implementation, but using the [DeepRL](https://github.com/sisl/DeepRL.jl) interface to make it easy to interact with deep
-reinforcement learning algorithms. 
-
-You can run an simulation, and save the results using the following:
+Julia wrapper for [OpenAI Gym](https://gym.openai.com/). 
+See [DeepRL.jl](https://github.com/CarloLucibello/DeepRL.jl) for some examples of deep reinforcement learning
+using the `Gym` enviroment.
 
 ```julia
 step = 1
@@ -14,7 +12,6 @@ done = false
 r_tot = 0.0
 
 env = GymEnv("Breakout-v0") # initialize the environment
-start_monitor(env, string("exp-", env.name)) # saves the results in exp-Breakout-v0/
 o = reset(env) # reset the environment
 na = n_actions(env)                                                  
 dims = obs_dimensions(env)
@@ -24,6 +21,5 @@ while !done && step <= nsteps
     r_tot += rew
     step += 1
 end 
-close_monitor(env)
 ```
 

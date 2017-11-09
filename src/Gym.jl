@@ -1,10 +1,8 @@
 # __precompile__()
 module Gym
 
-using DeepRL
 using PyCall
 using IntervalSets
-#import DeepRL: reset!, step!, actions, rand, sample_action, n_actions, obs_dimensions, render
 
 export
     GymEnv,
@@ -15,7 +13,7 @@ export
     obs_dimensions,
     render
 
-mutable struct GymEnv <: AbstractEnvironment
+mutable struct GymEnv
     name::AbstractString
     env
     state
@@ -26,15 +24,16 @@ GymEnv(name::AbstractString) = GymEnv(name, gym.make(name), nothing, true)
 
 Base.srand(env::GymEnv, seed) = env.env[:seed](seed)
 
-DeepRL.finished(env::GymEnv) = env.done
+finished(env::GymEnv) = env.done
 
-DeepRL.reset!(env::GymEnv) = (env.state = env.env[:reset](); env.state)
+reset!(env::GymEnv) = (env.state = env.env[:reset](); env.state)
 
-function DeepRL.step!(env::GymEnv, action)
+function step!(env::GymEnv, action)
     return env.state, r, env.done, info = env.env[:step](action) #TODO assuming fully observable here
 end
 
-DeepRL.actions(env::GymEnv) = _actions(env.env[:action_space])
+actions(env::GymEnv) = _actions(env.env[:action_space])
+
 function _actions(A::PyObject)
     if haskey(A, :n)
         # choose from n actions
@@ -64,11 +63,10 @@ function _actions(A::PyObject)
 end
 
 
-DeepRL.n_actions(env::GymEnv) = env.env[:action_space][:n]
+n_actions(env::GymEnv) = env.env[:action_space][:n]
 
-DeepRL.obs_dimensions(env::GymEnv) = env.env[:observation_space][:shape]
-
-DeepRL.render(env::GymEnv, args...; kws...) = env.env[:render](args...; kws...)
+obs_dimensions(env::GymEnv) = env.env[:observation_space][:shape]
+render(env::GymEnv, args...; kws...) = env.env[:render](args...; kws...)
 
 
 function __init__()
