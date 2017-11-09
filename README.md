@@ -23,3 +23,17 @@ while !done && step <= nsteps
 end 
 ```
 
+# Installation
+First, make sure you  have the `gym` library installed in your Python distribution.
+To install `gym` using `pip`
+```bash
+pip install gym
+pip install gym[atari]
+``` 
+Add to the above commands the `--user` flag if you don't have root access.
+
+Then you can install `Gym.jl` from the Julia REPL with  
+```julia
+Pkg.clone("https://github.com/CarloLucibello/Gym.jl")
+```
+
