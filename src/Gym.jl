@@ -8,13 +8,12 @@ export
     GymEnv,
     reset!,
     step!,
-    actions,
-    n_actions,
-    obs_dimensions,
+    action_space,
+    observation_space,
     render
 
 mutable struct GymEnv
-    name::AbstractString
+    name::String
     env
     state
     done
@@ -32,15 +31,16 @@ function step!(env::GymEnv, action)
     return env.state, r, env.done, info = env.env[:step](action) #TODO assuming fully observable here
 end
 
-actions(env::GymEnv) = _actions(env.env[:action_space])
+action_space(env::GymEnv) = pyset_to_julia(env.env[:action_space])
+observation_space(env::GymEnv) = pyset_to_julia(env.env[:observation_space])
 
-function _actions(A::PyObject)
+function pyset_to_julia(A::PyObject)
     if haskey(A, :n)
         # choose from n actions
         return 0:A[:n]-1
     elseif haskey(A, :spaces)
         # array of action sets
-        return[_actions(a) for a in A[:spaces]]
+        return ([pyset_to_julia(a) for a in A[:spaces]]...)
     elseif haskey(A, :high)
         # continuous interval
         return A[:low]..A[:high] # interval from IntervalSets
@@ -58,15 +58,9 @@ function _actions(A::PyObject)
     else
         @show A
         @show keys(A)
-        error("Unknown actionset type: $A")
+        error("Unknown set type: $A")
     end
 end
-
-
-n_actions(env::GymEnv) = env.env[:action_space][:n]
-
-obs_dimensions(env::GymEnv) = env.env[:observation_space][:shape]
-render(env::GymEnv, args...; kws...) = env.env[:render](args...; kws...)
 
 
 function __init__()
