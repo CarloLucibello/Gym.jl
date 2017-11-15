@@ -24,7 +24,7 @@ GymEnv(name::AbstractString) = GymEnv(name, gym.make(name), nothing, true)
 
 Base.srand(env::GymEnv, seed) = env.env[:seed](seed)
 
-finished(env::GymEnv) = env.done
+Base.done(env::GymEnv) = env.done
 
 reset!(env::GymEnv) = (env.state = env.env[:reset](); env.state)
 
