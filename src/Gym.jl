@@ -34,6 +34,9 @@ end
 action_space(env::GymEnv) = pyset_to_julia(env.env[:action_space])
 observation_space(env::GymEnv) = pyset_to_julia(env.env[:observation_space])
 
+# use keyword argument close=true to close
+render(env::GymEnv, args...; kws...) = env.env[:render](args...; kws...)
+
 function pyset_to_julia(A::PyObject)
     if haskey(A, :n)
         # choose from n actions

@@ -7,13 +7,12 @@ function sim(env, nsteps=100, rng=Base.Random.GLOBAL_RNG)
     step = 1
     done = false
     r_tot = 0.0
-    o = reset!(env)
+    obs = reset!(env)
     srand(env, 17)
     while !done && step <= nsteps
         A = action_space(env)
         action = rand(A)
         obs, rew, done, info = step!(env, action)
-        # println(obs, " ", rew, " ", done, " ", info)
         r_tot += rew
         step += 1
         # render(env)
