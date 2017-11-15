@@ -1,4 +1,4 @@
-# __precompile__()
+__precompile__()
 module Gym
 
 using PyCall
@@ -15,20 +15,19 @@ export
 mutable struct GymEnv
     name::String
     env
-    state
     done
 end
 
-GymEnv(name::AbstractString) = GymEnv(name, gym.make(name), nothing, true)
+GymEnv(name::AbstractString) = GymEnv(name, gym.make(name), true)
 
 Base.srand(env::GymEnv, seed) = env.env[:seed](seed)
 
 Base.done(env::GymEnv) = env.done
 
-reset!(env::GymEnv) = (env.state = env.env[:reset](); env.state)
+reset!(env::GymEnv) = env.env[:reset]()
 
 function step!(env::GymEnv, action)
-    return env.state, r, env.done, info = env.env[:step](action) #TODO assuming fully observable here
+    return obs, r, env.done, info = env.env[:step](action)
 end
 
 action_space(env::GymEnv) = pyset_to_julia(env.env[:action_space])
