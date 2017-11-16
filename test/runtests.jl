@@ -3,7 +3,7 @@ using IntervalSets
 using Base.Test
 
 function sim(env, nsteps=100, rng=Base.Random.GLOBAL_RNG)
-    println("### Playing ", env.name)
+    println("### Playing ", spec(env))
     step = 1
     done = false
     r_tot = 0.0

@@ -12,6 +12,7 @@ using the `Gym` enviroment.
 using Gym
 
 env = GymEnv("Breakout-v0") # initialize the environment
+println(spec(env)) # print specifications
 state = reset!(env)
 srand(17); srand(env, 17) #for reproducible results
 r_tot = 0.0

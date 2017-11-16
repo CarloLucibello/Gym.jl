@@ -4,37 +4,38 @@ module Gym
 using PyCall
 using IntervalSets
 
-export
-    GymEnv,
-    reset!,
-    step!,
-    action_space,
-    observation_space,
-    render
+export GymEnv, GymSpec, reset!, step!, action_space, observation_space, render, spec
 
 mutable struct GymEnv
-    name::String
-    env
+    pyenv
     done
+    spec # specifications    
 end
 
-GymEnv(name::AbstractString) = GymEnv(name, gym.make(name), true)
+function GymEnv(name::String)
+    specs = [:id, :nondeterministic, :reward_threshold, :tags, :timestep_limit, :trials]
+    pyenv = gym.make(name)
+    pyspec = pyenv[:spec]         
+    return GymEnv(pyenv, true,  Dict(s => pyspec[s] for s in specs))
+end
 
-Base.srand(env::GymEnv, seed) = env.env[:seed](seed)
+spec(env::GymEnv) = env.spec
+
+Base.srand(env::GymEnv, seed) = env.pyenv[:seed](seed)
 
 Base.done(env::GymEnv) = env.done
 
-reset!(env::GymEnv) = env.env[:reset]()
+reset!(env::GymEnv) = env.pyenv[:reset]()
 
 function step!(env::GymEnv, action)
-    return obs, r, env.done, info = env.env[:step](action)
+    return obs, r, env.done, info = env.pyenv[:step](action)
 end
 
-action_space(env::GymEnv) = pyset_to_julia(env.env[:action_space])
-observation_space(env::GymEnv) = pyset_to_julia(env.env[:observation_space])
+action_space(env::GymEnv) = pyset_to_julia(env.pyenv[:action_space])
+observation_space(env::GymEnv) = pyset_to_julia(env.pyenv[:observation_space])
 
 # use keyword argument close=true to close
-render(env::GymEnv, args...; kws...) = env.env[:render](args...; kws...)
+render(env::GymEnv, args...; kws...) = env.pyenv[:render](args...; kws...)
 
 function pyset_to_julia(A::PyObject)
     if haskey(A, :n)
